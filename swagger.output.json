@@ -1,0 +1,801 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Pet Joyful Posts Service API",
+    "description": "API para gerenciamento de postagens do Pet Joyful",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3003",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json",
+    "multipart/form-data"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "Posts",
+      "description": "Endpoints relacionados a postagens"
+    },
+    {
+      "name": "Likes",
+      "description": "Endpoints relacionados a curtidas"
+    },
+    {
+      "name": "Comments",
+      "description": "Endpoints relacionados a comentários"
+    }
+  ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Insira o token JWT no formato: Bearer {token}"
+    }
+  },
+  "paths": {
+    "/api/posts": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Listar todas as postagens",
+        "description": "Retorna uma lista paginada de postagens",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número da página",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens por página",
+            "type": "integer",
+            "default": 10
+          },
+          {
+            "name": "categoria",
+            "in": "query",
+            "description": "Filtrar por categoria",
+            "type": "string",
+            "enum": ["foto", "adocao", "perdido", "encontrado", "dica", "evento", "outros"]
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "Filtrar por ID do usuário",
+            "type": "string"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Filtrar por tag",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de postagens retornada com sucesso",
+            "schema": {
+              "$ref": "#/definitions/PostsListResponse"
+            }
+          },
+          "500": {
+            "description": "Erro ao listar postagens",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Criar nova postagem",
+        "description": "Cria uma nova postagem com ou sem imagem",
+        "consumes": ["multipart/form-data"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "titulo",
+            "in": "formData",
+            "description": "Título da postagem",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "descricao",
+            "in": "formData",
+            "description": "Descrição da postagem",
+            "type": "string"
+          },
+          {
+            "name": "categoria",
+            "in": "formData",
+            "description": "Categoria da postagem",
+            "type": "string",
+            "enum": ["foto", "adocao", "perdido", "encontrado", "dica", "evento", "outros"]
+          },
+          {
+            "name": "tags",
+            "in": "formData",
+            "description": "Tags separadas por vírgula",
+            "type": "string"
+          },
+          {
+            "name": "autorNome",
+            "in": "formData",
+            "description": "Nome do autor",
+            "type": "string"
+          },
+          {
+            "name": "imagem",
+            "in": "formData",
+            "description": "Imagem da postagem (máx 5MB)",
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Postagem criada com sucesso",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Não autorizado",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro ao criar postagem",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/{id}": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Buscar postagem por ID",
+        "description": "Retorna uma postagem específica e incrementa visualizações",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID da postagem",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postagem encontrada",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "404": {
+            "description": "Postagem não encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Erro ao buscar postagem",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Posts"],
+        "summary": "Atualizar postagem",
+        "description": "Atualiza uma postagem existente (apenas o autor pode atualizar)",
+        "consumes": ["multipart/form-data"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID da postagem",
+            "type": "string"
+          },
+          {
+            "name": "titulo",
+            "in": "formData",
+            "description": "Novo título",
+            "type": "string"
+          },
+          {
+            "name": "descricao",
+            "in": "formData",
+            "description": "Nova descrição",
+            "type": "string"
+          },
+          {
+            "name": "categoria",
+            "in": "formData",
+            "description": "Nova categoria",
+            "type": "string"
+          },
+          {
+            "name": "tags",
+            "in": "formData",
+            "description": "Novas tags",
+            "type": "string"
+          },
+          {
+            "name": "imagem",
+            "in": "formData",
+            "description": "Nova imagem",
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postagem atualizada com sucesso",
+            "schema": {
+              "$ref": "#/definitions/PostResponse"
+            }
+          },
+          "401": {
+            "description": "Não autorizado",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Sem permissão para editar",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Postagem não encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Posts"],
+        "summary": "Deletar postagem",
+        "description": "Deleta uma postagem (apenas o autor pode deletar)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID da postagem",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postagem deletada com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "403": {
+            "description": "Sem permissão para deletar"
+          },
+          "404": {
+            "description": "Postagem não encontrada"
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/like": {
+      "post": {
+        "tags": ["Likes"],
+        "summary": "Curtir/Descurtir postagem",
+        "description": "Adiciona ou remove like de uma postagem",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID da postagem",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Like adicionado/removido com sucesso",
+            "schema": {
+              "$ref": "#/definitions/LikeResponse"
+            }
+          },
+          "401": {
+            "description": "Não autorizado",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Postagem não encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/{id}/comment": {
+      "post": {
+        "tags": ["Comments"],
+        "summary": "Adicionar comentário",
+        "description": "Adiciona um comentário a uma postagem",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID da postagem",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comentário adicionado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/CommentResponse"
+            }
+          },
+          "400": {
+            "description": "Texto do comentário é obrigatório",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Não autorizado",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Postagem não encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/user/{userId}": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Listar postagens de um usuário",
+        "description": "Retorna todas as postagens de um usuário específico",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "ID do usuário",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número da página",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Quantidade de itens por página",
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de postagens do usuário",
+            "schema": {
+              "$ref": "#/definitions/PostsListResponse"
+            }
+          },
+          "500": {
+            "description": "Erro ao listar postagens",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Verifica se o serviço está funcionando",
+        "responses": {
+          "200": {
+            "description": "Serviço funcionando",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "OK"
+                },
+                "service": {
+                  "type": "string",
+                  "example": "Pet Joyful Posts Service"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "example": "2024-01-15T10:30:00.000Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Post": {
+      "type": "object",
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "example": "Meu pet adorável"
+        },
+        "descricao": {
+          "type": "string",
+          "example": "Olha só como ele é lindo!"
+        },
+        "categoria": {
+          "type": "string",
+          "example": "foto"
+        },
+        "tags": {
+          "type": "array",
+          "example": [
+            "cachorro",
+            "filhote"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "imagem": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "example": "https://res.cloudinary.com/demo/image/upload/sample.jpg"
+            },
+            "public_id": {
+              "type": "string",
+              "example": "sample"
+            },
+            "width": {
+              "type": "number",
+              "example": 800
+            },
+            "height": {
+              "type": "number",
+              "example": 600
+            }
+          }
+        },
+        "autor": {
+          "type": "object",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            },
+            "nome": {
+              "type": "string",
+              "example": "João Silva"
+            },
+            "email": {
+              "type": "string",
+              "example": "joao@example.com"
+            }
+          }
+        },
+        "likes": {
+          "type": "array",
+          "example": [
+            "507f1f77bcf86cd799439012",
+            "507f1f77bcf86cd799439013"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "comentarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "example": "507f1f77bcf86cd799439014"
+              },
+              "nome": {
+                "type": "string",
+                "example": "Maria Santos"
+              },
+              "texto": {
+                "type": "string",
+                "example": "Que fofo!"
+              },
+              "data": {
+                "type": "string",
+                "example": "2024-01-15T10:30:00.000Z"
+              }
+            }
+          }
+        },
+        "visualizacoes": {
+          "type": "number",
+          "example": 150
+        },
+        "ativo": {
+          "type": "boolean",
+          "example": true
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2024-01-15T08:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2024-01-15T10:30:00.000Z"
+        }
+      }
+    },
+    "CreatePost": {
+      "type": "object",
+      "required": [
+        "titulo"
+      ],
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "example": "Meu pet adorável"
+        },
+        "descricao": {
+          "type": "string",
+          "example": "Olha só como ele é lindo!"
+        },
+        "categoria": {
+          "type": "string",
+          "example": "foto"
+        },
+        "tags": {
+          "type": "string",
+          "example": "cachorro,filhote"
+        },
+        "autorNome": {
+          "type": "string",
+          "example": "João Silva"
+        }
+      }
+    },
+    "UpdatePost": {
+      "type": "object",
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "example": "Título atualizado"
+        },
+        "descricao": {
+          "type": "string",
+          "example": "Descrição atualizada"
+        },
+        "categoria": {
+          "type": "string",
+          "example": "dica"
+        },
+        "tags": {
+          "type": "string",
+          "example": "cachorro,cuidados"
+        }
+      }
+    },
+    "Comment": {
+      "type": "object",
+      "required": [
+        "texto"
+      ],
+      "properties": {
+        "texto": {
+          "type": "string",
+          "example": "Que lindo!"
+        },
+        "autorNome": {
+          "type": "string",
+          "example": "Maria Santos"
+        }
+      }
+    },
+    "PostResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "Postagem criada com sucesso"
+        },
+        "data": {
+          "$ref": "#/definitions/Post"
+        }
+      }
+    },
+    "PostsListResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Post"
+          }
+        },
+        "pagination": {
+          "type": "object",
+          "properties": {
+            "page": {
+              "type": "number",
+              "example": 1
+            },
+            "limit": {
+              "type": "number",
+              "example": 10
+            },
+            "total": {
+              "type": "number",
+              "example": 50
+            },
+            "pages": {
+              "type": "number",
+              "example": 5
+            }
+          }
+        }
+      }
+    },
+    "LikeResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "Postagem curtida"
+        },
+        "liked": {
+          "type": "boolean",
+          "example": true
+        },
+        "likesCount": {
+          "type": "number",
+          "example": 15
+        }
+      }
+    },
+    "CommentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "Comentário adicionado com sucesso"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            },
+            "nome": {
+              "type": "string",
+              "example": "João Silva"
+            },
+            "texto": {
+              "type": "string",
+              "example": "Que fofo!"
+            },
+            "data": {
+              "type": "string",
+              "example": "2024-01-15T10:30:00.000Z"
+            },
+            "_id": {
+              "type": "string",
+              "example": "507f1f77bcf86cd799439015"
+            }
+          }
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": false
+        },
+        "message": {
+          "type": "string",
+          "example": "Mensagem de erro"
+        },
+        "error": {
+          "type": "string",
+          "example": "Detalhes do erro"
+        }
+      }
+    }
+  }
+}
