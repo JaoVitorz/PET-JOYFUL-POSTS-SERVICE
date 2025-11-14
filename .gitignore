@@ -33,3 +33,6 @@ build/
 # Uploads
 uploads/
 tmp/
+
+#json files
+*.json
