@@ -1,4 +1,5 @@
 const Post = require('../models/postModel');
+const mongoose = require('mongoose');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
 
 // Criar postagem
@@ -15,6 +16,12 @@ exports.createPost = async (req, res) => {
       });
     }
 
+    // Converte userId para ObjectId se necessário
+    let userIdObjectId = userId;
+    if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
+      userIdObjectId = new mongoose.Types.ObjectId(userId);
+    }
+
     // Prepara dados da postagem
     const postData = {
       titulo,
@@ -22,10 +29,11 @@ exports.createPost = async (req, res) => {
       categoria: categoria || 'outros',
       tags: tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : [],
       autor: {
-        userId: userId,
+        userId: userIdObjectId,
         nome: req.body.autorNome || 'Usuário',
         email: email
-      }
+      },
+      ativo: true // Garante que o post está ativo
     };
 
     // Se houver imagem, faz upload para Cloudinary
@@ -45,6 +53,14 @@ exports.createPost = async (req, res) => {
 
     // Cria a postagem
     const post = await Post.create(postData);
+    
+    // Log para debug
+    console.log('Post criado com sucesso:', {
+      id: post._id,
+      titulo: post.titulo,
+      autor: post.autor.userId,
+      ativo: post.ativo
+    });
 
     return res.status(201).json({
       success: true,
@@ -69,9 +85,16 @@ exports.getPosts = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Filtros opcionais
-    const filters = { ativo: true };
+    const filters = { ativo: { $ne: false } }; // Busca posts ativos (inclui null/undefined como ativo)
     if (req.query.categoria) filters.categoria = req.query.categoria;
-    if (req.query.userId) filters['autor.userId'] = req.query.userId;
+    if (req.query.userId) {
+      // Converte userId para ObjectId se necessário
+      let userIdFilter = req.query.userId;
+      if (typeof req.query.userId === 'string' && mongoose.Types.ObjectId.isValid(req.query.userId)) {
+        userIdFilter = new mongoose.Types.ObjectId(req.query.userId);
+      }
+      filters['autor.userId'] = userIdFilter;
+    }
     if (req.query.tag) filters.tags = req.query.tag;
 
     const posts = await Post.find(filters)
@@ -81,6 +104,14 @@ exports.getPosts = async (req, res) => {
       .lean();
 
     const total = await Post.countDocuments(filters);
+
+    // Log para debug
+    console.log('Posts recuperados:', {
+      total,
+      encontrados: posts.length,
+      filtros: filters,
+      pagina: page
+    });
 
     return res.json({
       success: true,
@@ -356,13 +387,24 @@ exports.getUserPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find({ 'autor.userId': userId, ativo: true })
+    // Converte userId para ObjectId se necessário
+    let userIdFilter = userId;
+    if (typeof userId === 'string' && mongoose.Types.ObjectId.isValid(userId)) {
+      userIdFilter = new mongoose.Types.ObjectId(userId);
+    }
+
+    const filters = {
+      'autor.userId': userIdFilter,
+      ativo: { $ne: false } // Busca posts ativos (inclui null/undefined como ativo)
+    };
+
+    const posts = await Post.find(filters)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const total = await Post.countDocuments({ 'autor.userId': userId, ativo: true });
+    const total = await Post.countDocuments(filters);
 
     return res.json({
       success: true,
