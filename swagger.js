@@ -10,7 +10,7 @@ const doc = {
   schemes: ['http'],
   consumes: ['application/json', 'multipart/form-data'],
   produces: ['application/json'],
-  tags: [
+  tags: [ /* categorias */
     {
       name: 'Posts',
       description: 'Endpoints relacionados a postagens'
@@ -24,7 +24,7 @@ const doc = {
       description: 'Endpoints relacionados a comentários'
     }
   ],
-  securityDefinitions: {
+  securityDefinitions: { /* autenticação */
     bearerAuth: {
       type: 'apiKey',
       name: 'Authorization',
@@ -123,7 +123,7 @@ const doc = {
       message: 'Mensagem de erro',
       error: 'Detalhes do erro'
     }
-  }
+  } /* definições */
 };
 
 const outputFile = './swagger.output.json';

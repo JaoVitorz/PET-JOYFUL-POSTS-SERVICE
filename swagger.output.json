@@ -5,7 +5,7 @@
     "description": "API para gerenciamento de postagens do Pet Joyful",
     "version": "1.0.0"
   },
-  "host": "localhost:3003",
+  "host": "https://pet-joyful-posts-service.onrender.com/api-docs",
   "basePath": "/",
   "schemes": [
     "http"
@@ -39,8 +39,8 @@
       "description": "Insira o token JWT no formato: Bearer {token}"
     }
   },
-  "paths": {
-    "/api/posts": {
+  "paths": { 
+    "/api/posts": { 
       "get": {
         "tags": ["Posts"],
         "summary": "Listar todas as postagens",
