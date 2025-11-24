@@ -6,57 +6,28 @@ const swaggerDocument = require("../swagger.output.json");
 
 const app = express();
 
-// Middlewares
+// Middlewares globais
+app.use(
+  cors({
+    origin: [
+      "https://pet-joyful-projeto-integrador-next-js-ay4p-kzbr9m9bu.vercel.app",
+      "https://pet-joyful-posts-service.onrender.com",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "x-api-key",
+      "accept",
+    ],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : ["http://localhost:3000", "https://pet-joyful-projeto-integrador-next-js-ay4p-kzbr9m9bu.vercel.app"];
-
-console.log("🔒 Origens permitidas:", allowedOrigins);
-console.log("🌍 Ambiente:", process.env.NODE_ENV || "development");
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    console.log("📡 Requisição de origem:", origin);
-    
-    // Permite requisições sem origin (como Postman, mobile apps, etc)
-    if (!origin) {
-      console.log("✅ Permitido: Sem origem (Postman/API)");
-      return callback(null, true);
-    }
-
-    // Permite todas as origens se configurado com *
-    if (allowedOrigins.includes("*")) {
-      console.log("✅ Permitido: Todas as origens (*)");
-      return callback(null, true);
-    }
-
-    // Em desenvolvimento, permite todas as origens localhost
-    if (process.env.NODE_ENV !== "production") {
-      console.log("✅ Permitido: Modo desenvolvimento");
-      return callback(null, true);
-    }
-
-    // Verifica se a origem está na lista de permitidas
-    if (allowedOrigins.includes(origin)) {
-      console.log("✅ Permitido: Origem na lista permitida");
-      callback(null, true);
-    } else {
-      console.log("❌ Bloqueado: Origem não permitida");
-      callback(new Error(`Not allowed by CORS: ${origin}`));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  exposedHeaders: ["Authorization"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
