@@ -5,19 +5,11 @@
     "description": "API para gerenciamento de postagens do Pet Joyful",
     "version": "1.0.0"
   },
-  "host": "https://pet-joyful-posts-service.onrender.com",
+  "host": "pet-joyful-posts-service.onrender.com",
   "basePath": "/",
-  "schemes": [
-    "https",
-    "http"
-  ],
-  "consumes": [
-    "application/json",
-    "multipart/form-data"
-  ],
-  "produces": [
-    "application/json"
-  ],
+  "schemes": ["https", "http"],
+  "consumes": ["application/json", "multipart/form-data"],
+  "produces": ["application/json"],
   "tags": [
     {
       "name": "Posts",
@@ -40,8 +32,8 @@
       "description": "Insira o token JWT no formato: Bearer {token}"
     }
   },
-  "paths": { 
-    "/api/posts": { 
+  "paths": {
+    "/api/posts": {
       "get": {
         "tags": ["Posts"],
         "summary": "Listar todas as postagens",
@@ -66,7 +58,15 @@
             "in": "query",
             "description": "Filtrar por categoria",
             "type": "string",
-            "enum": ["foto", "adocao", "perdido", "encontrado", "dica", "evento", "outros"]
+            "enum": [
+              "foto",
+              "adocao",
+              "perdido",
+              "encontrado",
+              "dica",
+              "evento",
+              "outros"
+            ]
           },
           {
             "name": "userId",
@@ -125,7 +125,15 @@
             "in": "formData",
             "description": "Categoria da postagem",
             "type": "string",
-            "enum": ["foto", "adocao", "perdido", "encontrado", "dica", "evento", "outros"]
+            "enum": [
+              "foto",
+              "adocao",
+              "perdido",
+              "encontrado",
+              "dica",
+              "evento",
+              "outros"
+            ]
           },
           {
             "name": "tags",
@@ -507,10 +515,7 @@
         },
         "tags": {
           "type": "array",
-          "example": [
-            "cachorro",
-            "filhote"
-          ],
+          "example": ["cachorro", "filhote"],
           "items": {
             "type": "string"
           }
@@ -555,10 +560,7 @@
         },
         "likes": {
           "type": "array",
-          "example": [
-            "507f1f77bcf86cd799439012",
-            "507f1f77bcf86cd799439013"
-          ],
+          "example": ["507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"],
           "items": {
             "type": "string"
           }
@@ -607,9 +609,7 @@
     },
     "CreatePost": {
       "type": "object",
-      "required": [
-        "titulo"
-      ],
+      "required": ["titulo"],
       "properties": {
         "titulo": {
           "type": "string",
@@ -656,9 +656,7 @@
     },
     "Comment": {
       "type": "object",
-      "required": [
-        "texto"
-      ],
+      "required": ["texto"],
       "properties": {
         "texto": {
           "type": "string",
