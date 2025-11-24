@@ -8,6 +8,7 @@
   "host": "https://pet-joyful-posts-service.onrender.com",
   "basePath": "/",
   "schemes": [
+    "https",
     "http"
   ],
   "consumes": [
