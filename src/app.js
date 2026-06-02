@@ -14,6 +14,7 @@ app.use(
       "https://pet-joyful-posts-service.onrender.com",
       "http://localhost:3000",
       "http://localhost:3001",
+      "http://localhost:3003",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -26,8 +27,8 @@ app.use(
     ],
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
